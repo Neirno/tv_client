@@ -105,7 +105,7 @@ dependencies {
     implementation("org.orbit-mvi:orbit-compose:6.0.0")
 
     // coil
-    implementation ("io.coil-kt:coil-compose:1.3.2") // Проверьте актуальную версию
+    implementation ("io.coil-kt:coil-compose:1.4.0") // Проверьте актуальную версию
 
 
     // Tests

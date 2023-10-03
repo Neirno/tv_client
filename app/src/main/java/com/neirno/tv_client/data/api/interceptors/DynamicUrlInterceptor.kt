@@ -1,5 +1,6 @@
 package com.neirno.tv_client.data.api.interceptors
 
+import android.util.Log
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -23,6 +24,8 @@ class DynamicUrlInterceptor : Interceptor {
         } ?: originalRequest.url
 
         val newRequest = originalRequest.newBuilder().url(modifiedUrl).build()
+        Log.d("DynamicUrlInterceptor", "Modified URL: ${newRequest.url}")
+
         return chain.proceed(newRequest)
     }
 }

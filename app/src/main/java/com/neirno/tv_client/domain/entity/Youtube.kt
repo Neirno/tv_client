@@ -4,7 +4,7 @@ data class Youtube(
     val title: String,
     val channel: String,
     val views: Int,
-    val description: String,
+    val duration: String,
     val thumbnailUrl: String,
     val videoUrl: String
 )

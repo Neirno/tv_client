@@ -1,37 +1,60 @@
 package com.neirno.tv_client.data.repository
 
+import android.util.Log
+import com.neirno.tv_client.data.api.PlayRequest
 import com.neirno.tv_client.data.api.SearchRequest
 import com.neirno.tv_client.data.api.YoutubeApiService
 import com.neirno.tv_client.data.api.model.toDomain
 import com.neirno.tv_client.domain.entity.Youtube
 import com.neirno.tv_client.domain.repository.YoutubeRepository
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import java.io.IOException
+import com.neirno.tv_client.core.network.Result
 
 class YoutubeRepositoryImpl (
     private val retrofit: Retrofit,
 ): YoutubeRepository {
-    override fun getYoutube(query: String): Flow<List<Youtube>> = flow {
-        val youtubeApiService = retrofit.create(YoutubeApiService::class.java)
+    private val youtubeApiService = retrofit.create(YoutubeApiService::class.java)
 
-        val response = youtubeApiService.searchVideos(SearchRequest(query = query))
+    override suspend fun searchVideo(query: String, offset: Int, limit: Int): Result<List<Youtube>> {
+        return try {
+            Log.i("INFO OF IP!!!!!", retrofit.baseUrl().host)
+            val response = youtubeApiService.searchVideos(SearchRequest(query, offset, limit))
+            if (response.isSuccessful) {
+                val youtubeResponses = response.body() ?: emptyList()
+                Log.d("API_RESPONSE", youtubeResponses.toString())
 
-        if (response.isSuccessful) {
-            val youtubeResponses = response.body() ?: emptyList()
-            val youtubes = youtubeResponses.map { it.toDomain() }
-            emit(youtubes)
-        } else {
-            // Обработка ошибки
-            throw IOException("Ошибка при получении данных с сервера: ${response.errorBody()?.string()}")
+                val youtubeList = youtubeResponses.mapNotNull { youtubeResponse ->
+                    try {
+                        youtubeResponse.toDomain()
+                    } catch (e: Exception) {
+                        Log.e("Mapping error", "Failed to map object: $youtubeResponse", e)
+                        null // Возвращает null, чтобы исключить ошибочный объект из результата
+                    }
+                }
+                Result.Success(youtubeList)
+            } else {
+                Result.Error(Throwable(response.errorBody()?.string() ?: "Unknown error"))
+            }
+        } catch (e: Exception) {
+            Log.e("Youtube video error", e.toString())
+            Result.Error(e)
         }
     }
 
 
-
-    override suspend fun sendVideo(videoUrl: String): Boolean {
-        TODO("Not yet implemented")
+    override suspend fun sendVideoUrl(videoUrl: String): Result<Boolean> {
+        return try {
+            val response = youtubeApiService.sendVideoUrl(PlayRequest(url = videoUrl))
+            Log.i("url", videoUrl)
+            if (response.isSuccessful) {
+                Result.Success(true)
+            } else {
+                Result.Error(IOException("Ошибка при отправке url видео на сервер: ${response.errorBody()?.string()}"))
+            }
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
     }
+
 }

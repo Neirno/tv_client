@@ -1,6 +1,5 @@
 package com.neirno.tv_client.core.base
 
-import Video
 import YoutubeScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -51,6 +50,7 @@ import com.neirno.tv_client.presentation.ui.movies.Category
 import com.neirno.tv_client.presentation.ui.movies.MoviesScreen
 import com.neirno.tv_client.presentation.ui.panel.PanelScreen
 import com.neirno.tv_client.presentation.ui.query.QueryScreen
+import com.neirno.tv_client.presentation.ui.youtube.YoutubeViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -192,23 +192,14 @@ fun MainScreen(
         ) { index ->
             when (index) {
                 Tabs.YOUTUBE -> {
-                    val video = Video(
-                        title = "Example Video",
-                        channel = "Example Channel",
-                        views = "1M",
-                        duration = "10:30",
-                        thumbnail_url = R.drawable.maxresdefault
-                    )
-                    val video1 = Video(
-                        title = "Example Video",
-                        channel = "Example Channel",
-                        views = "1M",
-                        duration = "10:30",
-                        thumbnail_url = R.drawable.maxresdefault
-                    )
-                    val list = listOf<Video>(video, video1)
-                    YoutubeScreen(Modifier.padding(paddingValue),navigationManager, list)
-
+                    val youtubeViewModel: YoutubeViewModel = hiltViewModel()
+                    YoutubeScreen(
+                        modifier = Modifier.padding(paddingValue),
+                        navigationManager= navigationManager,
+                        viewState = youtubeViewModel.container.stateFlow.collectAsState().value,
+                        onEvent = youtubeViewModel::onEvent,
+                        sideEffectFlow = youtubeViewModel.container.sideEffectFlow
+                        )
                 }
                 Tabs.PANEL -> {
                     PanelScreen(Modifier.padding(paddingValue), navigationManager)

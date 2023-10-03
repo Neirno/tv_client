@@ -7,12 +7,13 @@ import com.neirno.tv_client.domain.entity.Connection as DomainConnection
 import com.neirno.tv_client.domain.repository.ConnectionRepository
 import com.neirno.tv_client.core.extension.toDomain
 import com.neirno.tv_client.core.extension.toData
-import com.neirno.tv_client.core.util.isValidIP
 import com.neirno.tv_client.data.api.ConnectionApiService
 import com.neirno.tv_client.data.api.interceptors.DynamicUrlInterceptor
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import retrofit2.Retrofit
+import com.neirno.tv_client.core.network.Result
+import okio.IOException
 
 class ConnectionRepositoryImpl(
     private val retrofit: Retrofit, // Зависимость от Retrofit
@@ -38,8 +39,8 @@ class ConnectionRepositoryImpl(
         return connectionDao.deleteConnection(id)
     }
 
-    override suspend fun checkConnection(ip: String): Boolean {
-        try {
+    override suspend fun checkConnection(ip: String): Result<Boolean> {
+        return try {
             val apiService = retrofit.newBuilder()
                 .baseUrl("http://$ip/")
                 .build()
@@ -47,16 +48,18 @@ class ConnectionRepositoryImpl(
 
             val response = apiService.checkConnection()
             if (response.isSuccessful) {
-                return true
+                Result.Success(true)
+            } else {
+                Result.Error(IOException("Неудачное соединение с $ip"))
             }
         } catch (e: Exception) {
             Log.e("Connect to IP", e.toString())
+            Result.Error(e)
         }
-        return false
     }
 
-    override suspend fun checkAndSaveConnection(ip: String): Boolean {
-        try {
+    override suspend fun checkAndSaveConnection(ip: String): Result<Boolean> {
+        return try {
             val apiService = retrofit.newBuilder()
                 .baseUrl("http://$ip/")
                 .build()
@@ -66,15 +69,19 @@ class ConnectionRepositoryImpl(
             if (response.isSuccessful) {
                 Log.i("Connection DAO (impl)", "Insert ip = $ip")
                 connectionDao.insertConnection(DataConnection(ip = ip))
-                return true
+                Result.Success(true)
+            } else {
+                Result.Error(IOException("Неудачное соединение с $ip при попытке сохранения"))
             }
         } catch (e: Exception) {
             Log.e("Connect to IP", e.toString())
+            Result.Error(e)
         }
-        return false
     }
 
     override suspend fun setInterceptorUrl(ip: String) {
+        Log.d("DynamicUrlInterceptor", "Setting new host: $ip")
         dynamicUrlInterceptor.newHost = ip
     }
+
 }

@@ -1,18 +1,11 @@
 package com.neirno.tv_client.presentation.ui.connection
 
-import android.util.Log
-import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
-import com.neirno.tv_client.core.extension.showToast
 import com.neirno.tv_client.domain.entity.Connection
-
+import com.neirno.tv_client.core.network.Result
 import com.neirno.tv_client.domain.use_case.connection.ConnectionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import org.orbitmvi.orbit.Container
 import org.orbitmvi.orbit.ContainerHost
 import org.orbitmvi.orbit.syntax.simple.intent
@@ -72,21 +65,29 @@ class ConnectionViewModel @Inject constructor(
         reduce { state.copy(loading = true) }
         val alreadyExists = state.oldIP.any { connection -> connection.ip == ip }
 
-        val success = if (alreadyExists) {
+        val result = if (alreadyExists) {
             connectionUseCase.checkConnection(ip)
         } else {
             connectionUseCase.checkAndSaveConnection(ip)
         }
 
-        if (success) {
-            postSideEffect(ConnectionSideEffect.ConnectionAccept)
-        } else {
-            postSideEffect(ConnectionSideEffect.ConnectionError("Ошибка при соединении"))
+        when (result) {
+            is Result.Success -> {
+                if (result.data) {
+                    postSideEffect(ConnectionSideEffect.ConnectionAccept)
+                } else {
+                    postSideEffect(ConnectionSideEffect.ConnectionError("Ошибка при соединении"))
+                }
+            }
+            is Result.Error -> {
+                postSideEffect(ConnectionSideEffect.ConnectionError("Ошибка при соединении: ${result.exception.message}"))
+            }
         }
+
         delay(1000L) // Костыль. Придумать тут надо чета, чтобы перерисовки не было
         reduce { state.copy(loading = false) }
-
     }
+
 
     private fun deleteConnection(id: Long) = intent {
         connectionUseCase.deleteConnection(id)
