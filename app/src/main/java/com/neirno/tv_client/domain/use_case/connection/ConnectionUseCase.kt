@@ -1,7 +1,7 @@
 package com.neirno.tv_client.domain.use_case.connection
 
 data class ConnectionUseCase (
-    val addConnection: AddConnection,
+    val insertConnection: InsertConnection,
     val getConnection: GetConnection,
     val getConnections: GetConnections,
     val deleteConnection: DeleteConnection,

@@ -4,8 +4,8 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity
-data class Connection(
+data class YoutubeSearch(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val ip: String
+    val query: String
 )

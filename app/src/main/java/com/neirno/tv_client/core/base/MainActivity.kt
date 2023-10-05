@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -49,6 +50,7 @@ import com.neirno.tv_client.presentation.ui.history.HistoryScreen
 import com.neirno.tv_client.presentation.ui.movies.Category
 import com.neirno.tv_client.presentation.ui.movies.MoviesScreen
 import com.neirno.tv_client.presentation.ui.panel.PanelScreen
+import com.neirno.tv_client.presentation.ui.panel.PanelViewModel
 import com.neirno.tv_client.presentation.ui.query.QueryScreen
 import com.neirno.tv_client.presentation.ui.youtube.YoutubeViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -66,6 +68,26 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                   /* val observer = LifecycleEventObserver { _, event ->
+                        when (event) {
+                            Lifecycle.Event.ON_STOP -> {
+                                // Приложение свернуто, сохраняем текущее время
+                                backgroundedTime = System.currentTimeMillis()
+                            }
+                            Lifecycle.Event.ON_START -> {
+                                // Приложение восстановлено, сравниваем время
+                                if (System.currentTimeMillis() - backgroundedTime > 60000) {
+                                    // Если приложение было свернуто больше минуты, переходим на экран ввода PIN
+                                    navController.navigate(Screen.PinCodeScreen.route)
+                                }
+                            }
+                            else -> {
+                                // Для других событий ничего не делаем
+                            }
+                        }
+                    }
+
+                    lifecycle.addObserver(observer)*/
                     AppNavigator()
                 }
             }
@@ -202,7 +224,14 @@ fun MainScreen(
                         )
                 }
                 Tabs.PANEL -> {
-                    PanelScreen(Modifier.padding(paddingValue), navigationManager)
+                    val panelViewModel: PanelViewModel = hiltViewModel()
+                    PanelScreen(
+                        modifier = Modifier.padding(paddingValue),
+                        navigationManager = navigationManager,
+                        viewState = panelViewModel.container.stateFlow.collectAsState().value,
+                        onEvent = panelViewModel::onEvent,
+                        sideEffectFlow = panelViewModel.container.sideEffectFlow
+                    )
                 }
                 Tabs.MOVIES -> {
                     val category = listOf(Category(

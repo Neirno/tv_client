@@ -6,7 +6,7 @@ import com.neirno.tv_client.data.api.interceptors.DynamicUrlInterceptor
 import com.neirno.tv_client.data.data_source.ConnectionDatabase
 import com.neirno.tv_client.data.repository.ConnectionRepositoryImpl
 import com.neirno.tv_client.domain.repository.ConnectionRepository
-import com.neirno.tv_client.domain.use_case.connection.AddConnection
+import com.neirno.tv_client.domain.use_case.connection.InsertConnection
 import com.neirno.tv_client.domain.use_case.connection.CheckAndSaveConnection
 import com.neirno.tv_client.domain.use_case.connection.CheckConnection
 import com.neirno.tv_client.domain.use_case.connection.ConnectionUseCase
@@ -47,7 +47,7 @@ object ConnectionModule {
         connectionRepository: ConnectionRepository,
     ): ConnectionUseCase {
         return ConnectionUseCase(
-            addConnection = AddConnection(connectionRepository),
+            insertConnection = InsertConnection(connectionRepository),
             deleteConnection = DeleteConnection(connectionRepository),
             getConnection = GetConnection(connectionRepository),
             getConnections = GetConnections(connectionRepository),

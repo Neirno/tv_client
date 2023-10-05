@@ -43,13 +43,15 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.delay
 
 
-@OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun ConnectionScreen(
     modifier: Modifier,
@@ -65,7 +67,9 @@ fun ConnectionScreen(
     ) {
         var textFieldValue by remember { mutableStateOf(viewState.ip) }
         val context = LocalContext.current
-        
+        val keyboardController = LocalSoftwareKeyboardController.current
+
+
         LaunchedEffect(sideEffectFlow) {
             sideEffectFlow.collect { sideEffect ->
                 when (sideEffect) {
@@ -78,7 +82,7 @@ fun ConnectionScreen(
                 }
             }
         }
-        Column (modifier = Modifier
+        Column (modifier = modifier
             .padding(it)
             .fillMaxSize(),
             verticalArrangement = Arrangement.Center,
@@ -111,6 +115,7 @@ fun ConnectionScreen(
                 ),
                 keyboardActions = KeyboardActions(
                     onDone = {
+                        keyboardController?.hide()
                         onEvent(ConnectionEvent.EnterConnection(textFieldValue))
                     }
                 ),

@@ -1,48 +1,74 @@
+import android.annotation.SuppressLint
+import android.graphics.Rect
+import android.util.Log
+import android.view.ViewTreeObserver
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.tooling.preview.Preview
 import com.neirno.tv_client.core.navigation.NavigationManager
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.window.PopupProperties
 import coil.compose.rememberImagePainter
-import com.neirno.tv_client.R
 import com.neirno.tv_client.domain.entity.Youtube
-import com.neirno.tv_client.presentation.ui.connection.ConnectionEvent
 import com.neirno.tv_client.presentation.ui.youtube.YoutubeEvent
 import com.neirno.tv_client.presentation.ui.youtube.YoutubeSideEffect
 import com.neirno.tv_client.presentation.ui.youtube.YoutubeState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun YoutubeScreen(
     modifier: Modifier = Modifier,
@@ -51,8 +77,36 @@ fun YoutubeScreen(
     onEvent: (YoutubeEvent) -> Unit,
     sideEffectFlow: Flow<YoutubeSideEffect>
 ) {
-    var textFieldValue by remember { mutableStateOf(viewState.query) }
+    //var textFieldValue by remember { mutableStateOf(viewState.query) }
+    var textFieldValue by remember {
+        mutableStateOf(
+            TextFieldValue(
+                text = viewState.query
+            )
+        )
+    }
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val scrollState = rememberLazyListState()
+    val keyboardController = LocalSoftwareKeyboardController.current
+    var expanded by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
+
+    BackHandler {
+        focusManager.clearFocus()
+        expanded = false
+    }
+
+
+    LaunchedEffect(sideEffectFlow) {
+        sideEffectFlow.collect { sideEffect ->
+            when (sideEffect) {
+                is YoutubeSideEffect.ErrorMessage -> {
+
+                }
+            }
+        }
+    }
 
     Column(
         modifier
@@ -60,36 +114,127 @@ fun YoutubeScreen(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            value = textFieldValue,
-            onValueChange = { newValue ->
-                textFieldValue = newValue
-            },
-            keyboardOptions = KeyboardOptions.Default.copy(
-                imeAction = ImeAction.Done,
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = {
-                    onEvent(YoutubeEvent.GetVideos(textFieldValue))
-                }
-            ),
-            shape = CircleShape,
-            leadingIcon = {
-                Icon(Icons.Default.Search, contentDescription = null)
+        ExposedDropdownMenuBox(
+            modifier = Modifier.padding(bottom = 16.dp),
+            expanded = expanded,
+            onExpandedChange = {
+                expanded = !expanded
             }
-        )
-        Button(onClick = {onEvent(YoutubeEvent.GetVideos(textFieldValue))}) {
-            Text(text = "q")
+        ) {
+            OutlinedTextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor(),
+                value = textFieldValue,
+                onValueChange = { newValue ->
+                    textFieldValue = newValue
+                    expanded = true
+                },
+                maxLines = 1,
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        onEvent(YoutubeEvent.SaveQuery(textFieldValue.text))
+                        onEvent(YoutubeEvent.GetVideos(textFieldValue.text))
+                        expanded = false
+                        keyboardController?.hide()
+                    },
+                ),
+                shape = CircleShape,
+                leadingIcon = {
+                    Icon(Icons.Default.Search, contentDescription = null)
+                },
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                    onEvent(YoutubeEvent.GetLastQueries)
+                },
+                label = { Text(text = "Поиск") },
+            )
+
+            val filteringYoutubeSearch = viewState.lastQueries.filter { it.query.contains(textFieldValue.text, ignoreCase = true) }
+            if (filteringYoutubeSearch.isNotEmpty()) {
+                DropdownMenu(
+                    modifier = Modifier.exposedDropdownSize(),
+                    expanded = expanded,
+                    onDismissRequest = {
+                        expanded = false
+                        //focusManager.clearFocus()
+                    },
+                    properties = PopupProperties(focusable = false)
+
+                ) {
+                    filteringYoutubeSearch.forEach { youtubeSearch ->
+                        DropdownMenuItem(
+                            text =
+                            {
+                                Text(text = youtubeSearch.query)
+                            },
+                            onClick = {
+                                textFieldValue = TextFieldValue(
+                                    text = youtubeSearch.query,
+                                    selection = TextRange(youtubeSearch.query.length)
+                                )
+
+                                //textFieldValue = youtubeSearch.query
+                                onEvent(YoutubeEvent.GetVideos(youtubeSearch.query))
+                                expanded = false
+                                keyboardController?.hide()
+                            },
+                            trailingIcon = {
+                                IconButton(onClick = { onEvent(YoutubeEvent.DeleteYoutubeSearch(youtubeSearch)) }) {
+                                    Icon(imageVector = Icons.Default.Delete, contentDescription = null)
+                                }
+                            },
+                            leadingIcon = {
+                                IconButton(onClick = {
+                                    textFieldValue = TextFieldValue(
+                                        text = youtubeSearch.query,
+                                        selection = TextRange(youtubeSearch.query.length)
+                                    )
+                                }) {
+                                    Icon(imageVector = Icons.Default.ArrowForward, contentDescription = null)
+                                }
+                            },
+                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                        )
+                    }
+                }
+            }
         }
-        LazyColumn {
-            items(viewState.videos) { video ->
-                VideoCard(
-                    video = video,
-                    onClick = {onEvent(YoutubeEvent.SendVideo(video))}
-                )
+
+        if (viewState.videos.isEmpty() && viewState.isLoading) {
+            LaunchedEffect(Unit){ scrollState.scrollToItem(0) }
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else {
+            LazyColumn(state = scrollState) {
+                itemsIndexed(viewState.videos) { index, video ->
+                    VideoCard(
+                        video = video,
+                        onClick = { onEvent(YoutubeEvent.SendVideo(video)) }
+                    )
+
+                    if (index == viewState.videos.size - 1 && viewState.isLoading) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                }
+            }
+            val threshold = viewState.videos.size * 0.8  // начнем загрузку при достижении 80% списка
+            val lastVisibleIndex = scrollState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+
+            if (scrollState.isScrollInProgress && lastVisibleIndex != null && lastVisibleIndex >= threshold && !viewState.hasReachedEndOfList) {
+                onEvent(YoutubeEvent.GetVideos(viewState.query))
             }
         }
     }
