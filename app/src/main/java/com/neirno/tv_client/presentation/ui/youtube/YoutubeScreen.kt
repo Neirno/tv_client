@@ -47,7 +47,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.window.PopupProperties
 import coil.compose.rememberImagePainter
-import com.neirno.tv_client.core.extension.clearFocusOnKeyboardDismiss
 import com.neirno.tv_client.domain.entity.Youtube
 import com.neirno.tv_client.presentation.ui.youtube.YoutubeEvent
 import com.neirno.tv_client.presentation.ui.youtube.YoutubeSideEffect
