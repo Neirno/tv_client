@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,10 +33,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -60,15 +64,21 @@ import org.orbitmvi.orbit.compose.collectSideEffect
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalLayoutApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             Tv_clientTheme {
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                   /* val observer = LifecycleEventObserver { _, event ->
+                    val navController = rememberNavController()
+                    val navigationManager = NavigationManager(navController)
+                    var backgroundedTime: Long = 0
+
+                    val observer = LifecycleEventObserver { _, event ->
                         when (event) {
                             Lifecycle.Event.ON_STOP -> {
                                 // Приложение свернуто, сохраняем текущее время
@@ -78,7 +88,7 @@ class MainActivity : ComponentActivity() {
                                 // Приложение восстановлено, сравниваем время
                                 if (System.currentTimeMillis() - backgroundedTime > 60000) {
                                     // Если приложение было свернуто больше минуты, переходим на экран ввода PIN
-                                    navController.navigate(Screen.PinCodeScreen.route)
+                                    navigationManager.toConnectionScreen()
                                 }
                             }
                             else -> {
@@ -86,20 +96,17 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
-
-                    lifecycle.addObserver(observer)*/
-                    AppNavigator()
+                    lifecycle.addObserver(observer)
+                    AppNavigator(navController, navigationManager)
                 }
             }
         }
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun AppNavigator() {
-    val navController = rememberNavController()
-    val navigationManager = NavigationManager(navController)
+fun AppNavigator(navController: NavHostController, navigationManager: NavigationManager) {
+
     NavHost(navController = navController, startDestination = NavigationRoutes.CONNECTION_SCREEN) {
         composable(NavigationRoutes.CONNECTION_SCREEN) {
             val connectionViewModel: ConnectionViewModel = hiltViewModel()
@@ -148,12 +155,14 @@ fun MainScreen(
     val pagerState = rememberPagerState{Tabs.SIZE}
 
     LaunchedEffect(pagerState.currentPage, pagerState.isScrollInProgress) {
-        if (!pagerState.isScrollInProgress)
-            onEvent(MainEvent.SetCurrentTab(pagerState.currentPage))
+        withContext(Dispatchers.IO) {
+            if (!pagerState.isScrollInProgress)
+                onEvent(MainEvent.SetCurrentTab(pagerState.currentPage))
+        }
     }
 
     LaunchedEffect(viewState.currentTab) {
-        withContext(Dispatchers.Default) {
+        withContext(Dispatchers.IO) {
             pagerState.animateScrollToPage(viewState.currentTab)
         }
     }
@@ -173,11 +182,31 @@ fun MainScreen(
                         }
                     }
                     Row (horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        IconButton(onClick = {navigationManager.toHistoryScreen()}) {
-                            Icon(imageVector = Icons.Default.Lightbulb, contentDescription = null)
+
+                        IconButton(onClick = {
+                            if (viewState.isDisplayOn)
+                                onEvent(MainEvent.DisplayOffEvent)
+                            else
+                                onEvent(MainEvent.DisplayOnEvent)
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Power,
+                                contentDescription = null,
+                                tint = if (viewState.isDisplayOn) Color.Yellow else MaterialTheme.colorScheme.onSurface
+                            )
                         }
-                        IconButton(onClick = {navigationManager.toHistoryScreen()}) {
-                            Icon(imageVector = Icons.Default.Power, contentDescription = null)
+
+                        IconButton(onClick = {
+                            if (viewState.isLightOn)
+                                onEvent(MainEvent.LightOffEvent)
+                            else
+                                onEvent(MainEvent.LightOnEvent)
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Lightbulb,
+                                contentDescription = null,
+                                tint = if (viewState.isLightOn) Color.Yellow else MaterialTheme.colorScheme.onSurface
+                            )
                         }
                     }
                 }
@@ -217,7 +246,6 @@ fun MainScreen(
                     val youtubeViewModel: YoutubeViewModel = hiltViewModel()
                     YoutubeScreen(
                         modifier = Modifier.padding(paddingValue),
-                        navigationManager= navigationManager,
                         viewState = youtubeViewModel.container.stateFlow.collectAsState().value,
                         onEvent = youtubeViewModel::onEvent,
                         sideEffectFlow = youtubeViewModel.container.sideEffectFlow
@@ -227,7 +255,6 @@ fun MainScreen(
                     val panelViewModel: PanelViewModel = hiltViewModel()
                     PanelScreen(
                         modifier = Modifier.padding(paddingValue),
-                        navigationManager = navigationManager,
                         viewState = panelViewModel.container.stateFlow.collectAsState().value,
                         onEvent = panelViewModel::onEvent,
                         sideEffectFlow = panelViewModel.container.sideEffectFlow

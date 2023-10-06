@@ -1,0 +1,77 @@
+package com.neirno.tv_client.presentation.ui.panel.components
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TimeSetupDialog(
+    showDialog: Boolean,
+    onCloseDialog: () -> Unit,
+    onConfirm: (hours: String, minutes: String, seconds: String) -> Unit
+) {
+    if (showDialog) {
+        Dialog(onDismissRequest = onCloseDialog) {
+            Box(
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(16.dp)
+                    .fillMaxWidth()
+            ) {
+                Column {
+                    Text(text = "Уст. время")
+
+                    val hoursState = remember { mutableStateOf("") }
+                    val minutesState = remember { mutableStateOf("") }
+                    val secondsState = remember { mutableStateOf("") }
+
+                    OutlinedTextField(
+                        value = hoursState.value,
+                        onValueChange = { hoursState.value = it },
+                        label = { Text("Часы") }
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = minutesState.value,
+                        onValueChange = { minutesState.value = it },
+                        label = { Text("Минуты") }
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = secondsState.value,
+                        onValueChange = { secondsState.value = it },
+                        label = { Text("Секунды") }
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(onClick = {
+                        onConfirm(hoursState.value, minutesState.value, secondsState.value)
+                    }) {
+                        Text("Подтвердить")
+                    }
+                }
+            }
+        }
+    }
+}

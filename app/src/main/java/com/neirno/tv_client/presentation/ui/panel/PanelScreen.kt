@@ -5,21 +5,45 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.neirno.tv_client.core.navigation.NavigationManager
+import com.neirno.tv_client.presentation.ui.panel.components.SoundSetupDialog
+import com.neirno.tv_client.presentation.ui.panel.components.TimeSetupDialog
 import kotlinx.coroutines.flow.Flow
 
 @Composable
 fun PanelScreen(
     modifier: Modifier = Modifier,
-    navigationManager: NavigationManager,
     viewState: PanelState,
     onEvent: (PanelEvent) -> Unit,
     sideEffectFlow: Flow<PanelSideEffect>
 ) {
     val scrollState = rememberScrollState()
+    var showTimeDialog by remember { mutableStateOf(false) }
+    var showSoundDialog by remember { mutableStateOf(false) }
+
+    TimeSetupDialog(
+        showDialog = showTimeDialog,
+        onCloseDialog = { showTimeDialog = false },
+        onConfirm = { hours, minutes, seconds ->
+            onEvent(PanelEvent.SetTime(hours, minutes, seconds))
+        }
+    )
+
+    SoundSetupDialog(
+        showDialog = showSoundDialog,
+        onCloseDialog = { showSoundDialog = false },
+        onConfirm = { soundValue ->
+            onEvent(PanelEvent.SetVolume(soundValue))
+        }
+    )
+
     Column (modifier.fillMaxSize().verticalScroll(scrollState)) {
         Row (
             Modifier
@@ -57,7 +81,7 @@ fun PanelScreen(
                 ) {
                     ControlButton(text = "+ звук", onClick = { onEvent(PanelEvent.VolumeShiftForward) })
                     ControlButton(text = "- звук", onClick = { onEvent(PanelEvent.VolumeShiftBackward) })
-                    ControlButton(text = "Установить звук", onClick = {  })
+                    ControlButton(text = "Установить звук", onClick = { showSoundDialog = true })
                 }
 
                 Row(
@@ -66,7 +90,7 @@ fun PanelScreen(
                 ) {
                     ControlButton(text = "- 10с", onClick = { onEvent(PanelEvent.SkipBackward) })
                     ControlButton(text = "+ 10с", onClick = { onEvent(PanelEvent.SkipForward) })
-                    ControlButton(text = "Уст. время", onClick = { /* обработка нажатия */ })
+                    ControlButton(text = "Уст. время", onClick = { showTimeDialog = true })
                 }
             }
         }

@@ -1,12 +1,7 @@
-import android.annotation.SuppressLint
-import android.graphics.Rect
-import android.util.Log
-import android.view.ViewTreeObserver
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -30,28 +25,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -60,24 +47,22 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.window.PopupProperties
 import coil.compose.rememberImagePainter
+import com.neirno.tv_client.core.extension.clearFocusOnKeyboardDismiss
 import com.neirno.tv_client.domain.entity.Youtube
 import com.neirno.tv_client.presentation.ui.youtube.YoutubeEvent
 import com.neirno.tv_client.presentation.ui.youtube.YoutubeSideEffect
 import com.neirno.tv_client.presentation.ui.youtube.YoutubeState
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
+
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun YoutubeScreen(
     modifier: Modifier = Modifier,
-    navigationManager: NavigationManager,
     viewState: YoutubeState,
     onEvent: (YoutubeEvent) -> Unit,
     sideEffectFlow: Flow<YoutubeSideEffect>
 ) {
-    //var textFieldValue by remember { mutableStateOf(viewState.query) }
     var textFieldValue by remember {
         mutableStateOf(
             TextFieldValue(
@@ -96,7 +81,6 @@ fun YoutubeScreen(
         focusManager.clearFocus()
         expanded = false
     }
-
 
     LaunchedEffect(sideEffectFlow) {
         sideEffectFlow.collect { sideEffect ->
@@ -121,6 +105,8 @@ fun YoutubeScreen(
                 expanded = !expanded
             }
         ) {
+            val filteringYoutubeSearch = viewState.lastQueries.filter { it.query.contains(textFieldValue.text, ignoreCase = true) }
+
             OutlinedTextField(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -128,7 +114,9 @@ fun YoutubeScreen(
                 value = textFieldValue,
                 onValueChange = { newValue ->
                     textFieldValue = newValue
-                    expanded = true
+                    if (filteringYoutubeSearch.isNotEmpty()) {
+                        expanded = true
+                    }
                 },
                 maxLines = 1,
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
@@ -151,7 +139,6 @@ fun YoutubeScreen(
                 label = { Text(text = "Поиск") },
             )
 
-            val filteringYoutubeSearch = viewState.lastQueries.filter { it.query.contains(textFieldValue.text, ignoreCase = true) }
             if (filteringYoutubeSearch.isNotEmpty()) {
                 DropdownMenu(
                     modifier = Modifier.exposedDropdownSize(),
