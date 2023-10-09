@@ -135,5 +135,6 @@ sealed class PanelEvent {
 }
 
 sealed class PanelSideEffect {
+    data class ActionMessage(val message: String) : PanelSideEffect() // Добавить позже, пока нет необходимости
     data class ErrorMessage(val message: String) : PanelSideEffect()
 }

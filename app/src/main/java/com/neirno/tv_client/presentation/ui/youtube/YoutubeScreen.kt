@@ -1,3 +1,4 @@
+import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -47,7 +48,11 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.window.PopupProperties
 import coil.compose.rememberImagePainter
+import com.neirno.tv_client.core.extension.showToast
+import com.neirno.tv_client.core.ui.UiStatus
 import com.neirno.tv_client.domain.entity.Youtube
+import com.neirno.tv_client.presentation.ui.movies.FilmsSideEffect
+import com.neirno.tv_client.presentation.ui.movies.handleSideEffect
 import com.neirno.tv_client.presentation.ui.youtube.YoutubeEvent
 import com.neirno.tv_client.presentation.ui.youtube.YoutubeSideEffect
 import com.neirno.tv_client.presentation.ui.youtube.YoutubeState
@@ -70,7 +75,6 @@ fun YoutubeScreen(
         )
     }
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     val scrollState = rememberLazyListState()
     val keyboardController = LocalSoftwareKeyboardController.current
     var expanded by remember { mutableStateOf(false) }
@@ -83,11 +87,10 @@ fun YoutubeScreen(
 
     LaunchedEffect(sideEffectFlow) {
         sideEffectFlow.collect { sideEffect ->
-            when (sideEffect) {
-                is YoutubeSideEffect.ErrorMessage -> {
-
-                }
-            }
+            handleSideEffect(
+                sideEffect = sideEffect,
+                context = context,
+            )
         }
     }
 
@@ -187,41 +190,53 @@ fun YoutubeScreen(
                 }
             }
         }
-
-        if (viewState.videos.isEmpty() && viewState.isLoading) {
-            LaunchedEffect(Unit){ scrollState.scrollToItem(0) }
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
+        when {
+            viewState.videos.isEmpty() && viewState.status == UiStatus.Loading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
             }
-        } else {
-            LazyColumn(state = scrollState) {
-                itemsIndexed(viewState.videos) { index, video ->
-                    VideoCard(
-                        video = video,
-                        onClick = { onEvent(YoutubeEvent.SendVideo(video)) }
-                    )
+            else -> {
+                LazyColumn(state = scrollState) {
+                    itemsIndexed(viewState.videos) { index, video ->
+                        VideoCard(video = video, onClick = { onEvent(YoutubeEvent.SendVideo(video)) })
+                    }
 
-                    if (index == viewState.videos.size - 1 && viewState.isLoading) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
+                    when (viewState.status) {
+                        UiStatus.Loading -> {
+                            item {
+                                Box(
+                                    modifier = Modifier.fillMaxSize().padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            }
                         }
+                        is UiStatus.Failed -> {
+                            item {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(text = (viewState.status as UiStatus.Failed).message)
+                                }
+                            }
+                        }
+                        UiStatus.Success -> {}  // No additional items for success status.
                     }
                 }
             }
-            val threshold = viewState.videos.size * 0.8  // начнем загрузку при достижении 80% списка
-            val lastVisibleIndex = scrollState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+        }
 
-            if (scrollState.isScrollInProgress && lastVisibleIndex != null && lastVisibleIndex >= threshold && !viewState.hasReachedEndOfList) {
-                onEvent(YoutubeEvent.GetVideos(viewState.query))
-            }
+        val threshold = viewState.videos.size * 0.8  // начнем загрузку при достижении 80% списка
+        val lastVisibleIndex = scrollState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+
+        if (scrollState.isScrollInProgress && lastVisibleIndex != null && lastVisibleIndex >= threshold && !viewState.hasReachedEndOfList) {
+            onEvent(YoutubeEvent.GetVideos(viewState.query))
         }
     }
 }
@@ -233,7 +248,7 @@ fun VideoCard(
     onClick: () -> Unit
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.medium)
             .background(MaterialTheme.colorScheme.surface)
@@ -277,3 +292,13 @@ fun VideoCard(
     }
 }
 
+fun handleSideEffect(sideEffect: YoutubeSideEffect, context: Context) {
+    when (sideEffect) {
+        is YoutubeSideEffect.VideoIsSend -> {
+            context.showToast(sideEffect.title)
+        }
+        is YoutubeSideEffect.ErrorMessage -> {
+            context.showToast(sideEffect.msg)
+        }
+    }
+}

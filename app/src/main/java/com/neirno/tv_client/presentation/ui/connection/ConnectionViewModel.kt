@@ -3,6 +3,7 @@ package com.neirno.tv_client.presentation.ui.connection
 import androidx.lifecycle.ViewModel
 import com.neirno.tv_client.domain.entity.Connection
 import com.neirno.tv_client.core.network.Result
+import com.neirno.tv_client.core.ui.UiStatus
 import com.neirno.tv_client.domain.use_case.connection.ConnectionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -24,7 +25,7 @@ class ConnectionViewModel @Inject constructor(
     override val container: Container<ConnectionState, ConnectionSideEffect> = container(ConnectionState())
 
     init {
-        getConnections()
+        onEvent(ConnectionEvent.GetConnections)
     }
 
     fun onEvent(event: ConnectionEvent) {
@@ -38,20 +39,16 @@ class ConnectionViewModel @Inject constructor(
             is ConnectionEvent.DeleteConnection -> {
                 deleteConnection(event.id)
             }
-            is ConnectionEvent.Loading -> {
-                changeLoading()
-            }
         }
-    }
-
-    private fun changeLoading() = intent {
-        reduce { state.copy(loading = !state.loading) }
     }
 
     private fun getConnections() = intent {
             repeatOnSubscription {connectionUseCase.getConnections().collect{ connection ->
                 reduce {
-                    state.copy(oldIP = connection)
+                    state.copy(
+                        previousConnections = connection,
+                        status = UiStatus.Success
+                    )
                 }
             }
         }
@@ -62,8 +59,8 @@ class ConnectionViewModel @Inject constructor(
             postSideEffect(ConnectionSideEffect.ConnectionError("IP адрес пуст"))
             return@intent
         }
-        reduce { state.copy(loading = true) }
-        val alreadyExists = state.oldIP.any { connection -> connection.ip == ip }
+        reduce { state.copy(status = UiStatus.Loading) }
+        val alreadyExists = state.previousConnections.any { connection -> connection.ip == ip }
 
         val result = if (alreadyExists) {
             connectionUseCase.checkConnection(ip)
@@ -85,7 +82,7 @@ class ConnectionViewModel @Inject constructor(
         }
 
         delay(1000L) // Костыль. Придумать тут надо чета, чтобы перерисовки не было
-        reduce { state.copy(loading = false) }
+        reduce { state.copy(status = UiStatus.Success) }
     }
 
 
@@ -97,14 +94,13 @@ class ConnectionViewModel @Inject constructor(
 }
 
 data class ConnectionState(
-    val loading: Boolean = false,
+    val status: UiStatus = UiStatus.Loading,
     val ip: String = "",
-    val oldIP: List<Connection> = emptyList(),
+    val previousConnections: List<Connection> = emptyList(),
 )
 
 sealed class ConnectionEvent {
     object GetConnections : ConnectionEvent()
-    object Loading : ConnectionEvent ()
     data class EnterConnection(val ip: String) : ConnectionEvent()
     data class DeleteConnection(val id: Long) : ConnectionEvent()
 }

@@ -34,7 +34,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -43,7 +42,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.neirno.tv_client.R
 import com.neirno.tv_client.core.constants.Tabs
 import com.neirno.tv_client.core.navigation.NavigationManager
 import com.neirno.tv_client.core.navigation.NavigationRoutes
@@ -51,8 +49,8 @@ import com.neirno.tv_client.presentation.theme.Tv_clientTheme
 import com.neirno.tv_client.presentation.ui.connection.ConnectionScreen
 import com.neirno.tv_client.presentation.ui.connection.ConnectionViewModel
 import com.neirno.tv_client.presentation.ui.history.HistoryScreen
-import com.neirno.tv_client.presentation.ui.movies.Category
-import com.neirno.tv_client.presentation.ui.movies.MoviesScreen
+import com.neirno.tv_client.presentation.ui.movies.FilmsScreen
+import com.neirno.tv_client.presentation.ui.movies.FilmsViewModel
 import com.neirno.tv_client.presentation.ui.panel.PanelScreen
 import com.neirno.tv_client.presentation.ui.panel.PanelViewModel
 import com.neirno.tv_client.presentation.ui.query.QueryScreen
@@ -60,11 +58,9 @@ import com.neirno.tv_client.presentation.ui.youtube.YoutubeViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.orbitmvi.orbit.compose.collectSideEffect
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalLayoutApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -87,7 +83,7 @@ class MainActivity : ComponentActivity() {
                             Lifecycle.Event.ON_START -> {
                                 // Приложение восстановлено, сравниваем время
                                 if (System.currentTimeMillis() - backgroundedTime > 60000) {
-                                    // Если приложение было свернуто больше минуты, переходим на экран ввода PIN
+                                    // Если приложение было свернуто больше минуты, переходим на экран ввода IP
                                     navigationManager.toConnectionScreen()
                                 }
                             }
@@ -232,18 +228,18 @@ fun MainScreen(
                     )
                 }
             }
-        },
-        bottomBar = {
-
         }
     ) { paddingValue ->
+        val youtubeViewModel: YoutubeViewModel = hiltViewModel()
+        val panelViewModel: PanelViewModel = hiltViewModel()
+        val filmsViewModel: FilmsViewModel = hiltViewModel()
+
         HorizontalPager(
             modifier = Modifier.fillMaxSize(),
             state = pagerState,
         ) { index ->
             when (index) {
                 Tabs.YOUTUBE -> {
-                    val youtubeViewModel: YoutubeViewModel = hiltViewModel()
                     YoutubeScreen(
                         modifier = Modifier.padding(paddingValue),
                         viewState = youtubeViewModel.container.stateFlow.collectAsState().value,
@@ -252,7 +248,6 @@ fun MainScreen(
                         )
                 }
                 Tabs.PANEL -> {
-                    val panelViewModel: PanelViewModel = hiltViewModel()
                     PanelScreen(
                         modifier = Modifier.padding(paddingValue),
                         viewState = panelViewModel.container.stateFlow.collectAsState().value,
@@ -261,11 +256,12 @@ fun MainScreen(
                     )
                 }
                 Tabs.MOVIES -> {
-                    val category = listOf(Category(
-                        title = "Category",
-                        imageUrl = ""
-                    ))
-                    MoviesScreen(Modifier.padding(paddingValue), navigationManager, category)
+                    FilmsScreen(
+                        modifier = Modifier.padding(paddingValue),
+                        viewState = filmsViewModel.container.stateFlow.collectAsState().value,
+                        onEvent = filmsViewModel::onEvent,
+                        sideEffectFlow = filmsViewModel.container.sideEffectFlow
+                    )
                 }
             }
         }

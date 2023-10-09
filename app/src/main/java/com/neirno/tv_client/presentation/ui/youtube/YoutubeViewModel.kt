@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.neirno.tv_client.core.constants.Limit.PAGE_LIMIT
 import com.neirno.tv_client.core.network.Result
+import com.neirno.tv_client.core.ui.UiStatus
 import com.neirno.tv_client.domain.entity.Youtube
 import com.neirno.tv_client.domain.entity.YoutubeSearch
 import com.neirno.tv_client.domain.use_case.youtube.YoutubeUseCase
@@ -11,6 +12,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import org.orbitmvi.orbit.Container
 import org.orbitmvi.orbit.ContainerHost
 import org.orbitmvi.orbit.syntax.simple.intent
+import org.orbitmvi.orbit.syntax.simple.postSideEffect
 import org.orbitmvi.orbit.syntax.simple.reduce
 import org.orbitmvi.orbit.viewmodel.container
 import javax.inject.Inject
@@ -48,14 +50,14 @@ class YoutubeViewModel @Inject constructor(
 
     private fun getVideos(query: String) = intent {
         // Если уже идет загрузка или достигнут конец списка для текущего запроса, прерываем выполнение
-        if (state.isLoading || (state.hasReachedEndOfList && state.query == query)) return@intent
+        if (state.status == UiStatus.Loading || (state.hasReachedEndOfList && state.query == query)) return@intent
 
         // Сбросим состояние при новом запросе
         if (state.query != query) {
             reduce { state.copy(videos = emptyList(), offset = 0, query = query, hasReachedEndOfList = false) }
         }
 
-        reduce { state.copy(isLoading = true) }
+        reduce { state.copy(status = UiStatus.Loading) }
 
         val currentOffset = state.offset
         val limit = PAGE_LIMIT
@@ -63,19 +65,19 @@ class YoutubeViewModel @Inject constructor(
         when (val result = youtubeUseCase.searchVideo(query, currentOffset, limit)) {
             is Result.Success -> {
                 if (result.data.isEmpty() || result.data.size < limit) {
-                    reduce { state.copy(hasReachedEndOfList = true, isLoading = false) }
+                    reduce { state.copy(hasReachedEndOfList = true, status = UiStatus.Success) }
                 } else {
                     reduce {
                         state.copy(
                             videos = state.videos + result.data,
-                            isLoading = false,
+                            status = UiStatus.Success,
                             offset = currentOffset + 5
                         )
                     }
                 }
             }
             is Result.Error -> {
-                reduce { state.copy(isLoading = false) }
+                reduce { state.copy(status = UiStatus.Failed("Произашла ошибка.")) }
                 Log.i("Error VM (get)", result.exception.message.toString())
             }
         }
@@ -84,12 +86,12 @@ class YoutubeViewModel @Inject constructor(
     private fun sendVideo(video: Youtube) = intent {
         when (val result = youtubeUseCase.sendVideoUrl(video)) {
             is Result.Success -> {
-
+                postSideEffect(YoutubeSideEffect.VideoIsSend(video.title))
             }
             is Result.Error -> {
-
+                postSideEffect(YoutubeSideEffect.ErrorMessage("Произашла ошибка при отправке видео."))
+                Log.i("Error VM (send)", result.exception.message.toString())
             }
-
         }
     }
 
@@ -121,7 +123,7 @@ data class YoutubeState(
     val offset: Int = 0,
     val query: String = "",
     val video: Youtube? = null,
-    val isLoading: Boolean = false,
+    val status: UiStatus = UiStatus.Success,
     val hasReachedEndOfList: Boolean = false,
     val lastQueries: List<YoutubeSearch> = emptyList(),
 )
@@ -135,5 +137,6 @@ sealed class YoutubeEvent {
 }
 
 sealed class YoutubeSideEffect {
-    data class ErrorMessage(val query: String) : YoutubeSideEffect()
+    data class VideoIsSend(val title: String) : YoutubeSideEffect()
+    data class ErrorMessage(val msg: String) : YoutubeSideEffect()
 }
