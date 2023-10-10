@@ -82,7 +82,8 @@ fun DisplayingCategories(
                         // Обработка введенного пароля
                         openPrivateCategory(password)
                         showDialog = false // закрыть диалог после обработки пароля
-                    }
+                    },
+                    onDismiss = { showDialog = false }
                 )
             }
         }
@@ -138,11 +139,11 @@ fun FilmCategoryCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PasswordDialog(onPasswordEntered: (String) -> Unit) {
+fun PasswordDialog(onPasswordEntered: (String) -> Unit, onDismiss: () -> Unit) {
     var password by remember { mutableStateOf("") }
 
     AlertDialog(
-        onDismissRequest = { /* Закрыть диалог */ },
+        onDismissRequest = { onDismiss() },
         title = { Text(text = "Введите пароль") },
         text = {
             TextField(
