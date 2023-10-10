@@ -32,7 +32,7 @@ class HistoryViewModel @Inject constructor(
 
     private fun getHistories() = intent {
         historyUseCase.getHistories().collect { histories ->
-            reduce { state.copy(histories = histories)  }
+            reduce { state.copy(histories = histories.reversed())  }
         }
     }
 
