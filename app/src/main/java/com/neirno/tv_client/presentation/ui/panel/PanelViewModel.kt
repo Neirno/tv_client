@@ -2,6 +2,7 @@ package com.neirno.tv_client.presentation.ui.panel
 
 import androidx.lifecycle.ViewModel
 import com.neirno.tv_client.core.network.Result
+import com.neirno.tv_client.domain.entity.VideoStatus
 import com.neirno.tv_client.domain.use_case.panel.PanelUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import org.orbitmvi.orbit.Container
@@ -31,6 +32,7 @@ class PanelViewModel @Inject constructor(
             is PanelEvent.SkipBackward -> skipBackward()
             is PanelEvent.SetTime -> setTime(event.h, event.m, event.s)
             is PanelEvent.SkipVideo -> skipVideo()
+            is PanelEvent.GetStatus -> getStatus()
         }
     }
 
@@ -109,6 +111,18 @@ class PanelViewModel @Inject constructor(
             is Result.Error -> postSideEffect(PanelSideEffect.ErrorMessage(result.exception.message ?: "Error skipping video"))
         }
     }
+
+    private fun getStatus() = intent {
+        when (val result = panelUseCases.getVideoStatus()) {
+            is Result.Success -> {
+                val status = result.data
+                //postSideEffect(PanelSideEffect.StatusMessage(status))
+                reduce { state.copy(videoStatus = status) }
+            }
+            is Result.Error -> postSideEffect(PanelSideEffect.ErrorMessage(result.exception.message ?: "Error getting status"))
+        }
+    }
+
 }
 
 data class PanelState(
@@ -118,7 +132,8 @@ data class PanelState(
     val volumeShifted: String? = null, // can be "forward" or "backward"
     val skipped: String? = null, // can be "forward" or "backward"
     val timeSet: Boolean = false,
-    val skipVideo: Boolean = false
+    val skipVideo: Boolean = false,
+    val videoStatus: VideoStatus? = null
 )
 
 sealed class PanelEvent {
@@ -132,9 +147,10 @@ sealed class PanelEvent {
     object SkipBackward : PanelEvent()
     data class SetTime(val h: String, val m: String, val s: String) : PanelEvent()
     object SkipVideo : PanelEvent()
+    object GetStatus : PanelEvent()
 }
 
 sealed class PanelSideEffect {
-    data class ActionMessage(val message: String) : PanelSideEffect() // Добавить позже, пока нет необходимости
+    data class StatusMessage(val status: VideoStatus) : PanelSideEffect()
     data class ErrorMessage(val message: String) : PanelSideEffect()
 }

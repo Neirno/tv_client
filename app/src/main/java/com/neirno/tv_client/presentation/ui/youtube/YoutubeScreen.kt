@@ -30,7 +30,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -43,7 +42,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.neirno.tv_client.core.navigation.NavigationManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.window.PopupProperties
@@ -51,8 +49,6 @@ import coil.compose.rememberImagePainter
 import com.neirno.tv_client.core.extension.showToast
 import com.neirno.tv_client.core.ui.UiStatus
 import com.neirno.tv_client.domain.entity.Youtube
-import com.neirno.tv_client.presentation.ui.movies.FilmsSideEffect
-import com.neirno.tv_client.presentation.ui.movies.handleSideEffect
 import com.neirno.tv_client.presentation.ui.youtube.YoutubeEvent
 import com.neirno.tv_client.presentation.ui.youtube.YoutubeSideEffect
 import com.neirno.tv_client.presentation.ui.youtube.YoutubeState

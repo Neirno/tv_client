@@ -5,8 +5,10 @@ import androidx.lifecycle.ViewModel
 import com.neirno.tv_client.core.constants.Limit.PAGE_LIMIT
 import com.neirno.tv_client.core.network.Result
 import com.neirno.tv_client.core.ui.UiStatus
+import com.neirno.tv_client.domain.entity.History
 import com.neirno.tv_client.domain.entity.Youtube
 import com.neirno.tv_client.domain.entity.YoutubeSearch
+import com.neirno.tv_client.domain.use_case.history.HistoryUseCase
 import com.neirno.tv_client.domain.use_case.youtube.YoutubeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import org.orbitmvi.orbit.Container
@@ -19,7 +21,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class YoutubeViewModel @Inject constructor(
-    private val youtubeUseCase: YoutubeUseCase
+    private val youtubeUseCase: YoutubeUseCase,
+    private val historyUseCase: HistoryUseCase
 ): ViewModel(), ContainerHost<YoutubeState, YoutubeSideEffect> {
 
     override val container: Container<YoutubeState, YoutubeSideEffect> = container(YoutubeState())
@@ -30,21 +33,11 @@ class YoutubeViewModel @Inject constructor(
 
     fun onEvent(event: YoutubeEvent) {
         when (event) {
-            is YoutubeEvent.GetVideos -> {
-                getVideos(event.query)
-            }
-            is YoutubeEvent.SendVideo -> {
-                sendVideo(event.video)
-            }
-            is YoutubeEvent.GetLastQueries -> {
-                getLastQueries()
-            }
-            is YoutubeEvent.SaveQuery -> {
-                saveOrUpdateQuery(event.query)
-            }
-            is YoutubeEvent.DeleteYoutubeSearch -> {
-                deleteQuery(event.query)
-            }
+            is YoutubeEvent.GetVideos -> getVideos(event.query)
+            is YoutubeEvent.SendVideo -> sendVideo(event.video)
+            is YoutubeEvent.GetLastQueries -> getLastQueries()
+            is YoutubeEvent.SaveQuery -> saveOrUpdateQuery(event.query)
+            is YoutubeEvent.DeleteYoutubeSearch -> deleteQuery(event.query)
         }
     }
 
@@ -87,6 +80,7 @@ class YoutubeViewModel @Inject constructor(
         when (val result = youtubeUseCase.sendVideoUrl(video)) {
             is Result.Success -> {
                 postSideEffect(YoutubeSideEffect.VideoIsSend(video.title))
+                historyUseCase.insertHistory(video.title)
             }
             is Result.Error -> {
                 postSideEffect(YoutubeSideEffect.ErrorMessage("Произашла ошибка при отправке видео."))

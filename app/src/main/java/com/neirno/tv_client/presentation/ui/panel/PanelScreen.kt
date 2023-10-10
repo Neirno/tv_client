@@ -3,6 +3,10 @@ package com.neirno.tv_client.presentation.ui.panel
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.VolumeDown
+import androidx.compose.material.icons.filled.VolumeMute
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -11,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.neirno.tv_client.core.navigation.NavigationManager
 import com.neirno.tv_client.presentation.ui.panel.components.SoundSetupDialog
@@ -27,6 +32,8 @@ fun PanelScreen(
     val scrollState = rememberScrollState()
     var showTimeDialog by remember { mutableStateOf(false) }
     var showSoundDialog by remember { mutableStateOf(false) }
+    var showStatus by remember { mutableStateOf(false) } // состояние для отображения диалога
+
 
     TimeSetupDialog(
         showDialog = showTimeDialog,
@@ -44,12 +51,19 @@ fun PanelScreen(
         }
     )
 
-    Column (modifier.fillMaxSize().verticalScroll(scrollState)) {
+    Column (
+        modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)) {
         Row (
             Modifier
                 .fillMaxWidth()
-                .padding(32.dp), verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.End){
-            ControlButton(text = "Выключить видео", onClick = { onEvent(PanelEvent.Stop) })
+                .padding(32.dp), verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.SpaceBetween){
+            ControlButton(text = "Статус", onClick = {
+                onEvent(PanelEvent.GetStatus)
+                showStatus = true
+            })
+            ControlButton(text = "Off", onClick = { onEvent(PanelEvent.Stop) })
         }
         Box(
             modifier = Modifier
@@ -70,8 +84,8 @@ fun PanelScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         ControlButton(text = "||", onClick = { onEvent(PanelEvent.Pause) })
-                        ControlButton(text = "Воспроизведение", onClick = { onEvent(PanelEvent.Resume) })
-                        ControlButton(text = "Следующее видео", onClick = { onEvent(PanelEvent.SkipVideo) })
+                        ControlButton(text = "|>", onClick = { onEvent(PanelEvent.Resume) })
+                        ControlButton(text = ">>", onClick = { onEvent(PanelEvent.SkipVideo) })
                     }
                 }
 
@@ -79,18 +93,43 @@ fun PanelScreen(
                     modifier = Modifier.padding(top = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    ControlButton(text = "+ звук", onClick = { onEvent(PanelEvent.VolumeShiftForward) })
-                    ControlButton(text = "- звук", onClick = { onEvent(PanelEvent.VolumeShiftBackward) })
-                    ControlButton(text = "Установить звук", onClick = { showSoundDialog = true })
+                    ControlButton(text = "+ 10", onClick = { onEvent(PanelEvent.VolumeShiftForward) })
+                    ControlButton(text = "- 10", onClick = { onEvent(PanelEvent.VolumeShiftBackward) })
+                    ControlButton(text = "Звук", onClick = { showSoundDialog = true })
                 }
 
                 Row(
                     modifier = Modifier.padding(top = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    ControlButton(text = "- 10с", onClick = { onEvent(PanelEvent.SkipBackward) })
-                    ControlButton(text = "+ 10с", onClick = { onEvent(PanelEvent.SkipForward) })
-                    ControlButton(text = "Уст. время", onClick = { showTimeDialog = true })
+                    ControlButton(text = "- 10", onClick = { onEvent(PanelEvent.SkipBackward) })
+                    ControlButton(text = "+ 10", onClick = { onEvent(PanelEvent.SkipForward) })
+                    ControlButton(text = "Время", onClick = { showTimeDialog = true })
+                }
+                if (showStatus && viewState.videoStatus != null) {
+                    AlertDialog(
+                        onDismissRequest = { showStatus = false },
+                        title = { Text(text = viewState.videoStatus.title)},
+                        text = {
+                               Column {
+                                   Text(text = "Название: ${viewState.videoStatus.title}")
+                                   Text(text = "Канал: ${viewState.videoStatus.channel}")
+                                   Text(text = "Просмотры: ${viewState.videoStatus.views}")
+                                   Text(text = "Продолжительность: ${viewState.videoStatus.duration}")
+                                   Text(text = "Текущее время: ${viewState.videoStatus.current_time}")
+                                   Text(text = "Громкость: ${viewState.videoStatus.volume}")
+                               }
+                        },
+                        confirmButton = {
+                            Button(
+                                onClick = { showStatus = false }, colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Transparent,
+                                    contentColor = MaterialTheme.colorScheme.onSurface
+                                )
+                            ) {
+                                Text(text = "Ок")
+                            }
+                        })
                 }
             }
         }
@@ -103,7 +142,6 @@ private fun ControlButton(text: String, onClick: () -> Unit) {
     IconButton(
         onClick = {
             onClick()
-
         },
         modifier = Modifier
             .border(2.dp, MaterialTheme.colorScheme.secondary, shape = RoundedCornerShape(8.dp))

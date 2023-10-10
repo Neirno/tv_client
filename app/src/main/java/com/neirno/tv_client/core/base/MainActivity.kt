@@ -47,6 +47,7 @@ import com.neirno.tv_client.presentation.theme.Tv_clientTheme
 import com.neirno.tv_client.presentation.ui.connection.ConnectionScreen
 import com.neirno.tv_client.presentation.ui.connection.ConnectionViewModel
 import com.neirno.tv_client.presentation.ui.history.HistoryScreen
+import com.neirno.tv_client.presentation.ui.history.HistoryViewModel
 import com.neirno.tv_client.presentation.ui.movies.FilmsScreen
 import com.neirno.tv_client.presentation.ui.movies.FilmsViewModel
 import com.neirno.tv_client.presentation.ui.panel.PanelScreen
@@ -54,6 +55,7 @@ import com.neirno.tv_client.presentation.ui.panel.PanelViewModel
 import com.neirno.tv_client.presentation.ui.youtube.YoutubeViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
@@ -115,16 +117,20 @@ fun AppNavigator(navController: NavHostController, navigationManager: Navigation
             val mainViewModel: MainViewModel = hiltViewModel()
             MainScreen(
                 modifier = Modifier,
+                navigationManager = navigationManager,
                 viewState = mainViewModel.container.stateFlow.collectAsState().value,
                 onEvent = mainViewModel::onEvent,
-                navigationManager = navigationManager
+                sideEffectFlow = mainViewModel.container.sideEffectFlow
             )
         }
         composable(NavigationRoutes.HISTORY_SCREEN) {
-            //val historyVM: HistoryVM = hiltViewModel()
+            val historyViewModel: HistoryViewModel = hiltViewModel()
             HistoryScreen(
                 modifier = Modifier,
-                navigationManager = navigationManager
+                navigationManager = navigationManager,
+                viewState = historyViewModel.container.stateFlow.collectAsState().value,
+                onEvent = historyViewModel::onEvent,
+                sideEffectFlow = historyViewModel.container.sideEffectFlow
             )
         }
     }
@@ -134,9 +140,10 @@ fun AppNavigator(navController: NavHostController, navigationManager: Navigation
 @Composable
 fun MainScreen(
     modifier: Modifier,
+    navigationManager: NavigationManager,
     viewState: MainState,
     onEvent: (MainEvent) -> Unit,
-    navigationManager: NavigationManager
+    sideEffectFlow: Flow<MainSideEffect>
 ) {
     val pagerState = rememberPagerState{Tabs.SIZE}
 
@@ -156,9 +163,21 @@ fun MainScreen(
     Scaffold(
         topBar = {
             Column (horizontalAlignment = Alignment.CenterHorizontally) {
-                Row (horizontalArrangement = Arrangement.End, modifier = Modifier
+                Row (horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp)) {
+                    Row (horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        IconButton(onClick = {
+                            navigationManager.toHistoryScreen()
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.History,
+                                contentDescription = null,
+                            )
+                        }
+
+                    }
+
                     Row (horizontalArrangement = Arrangement.spacedBy(16.dp)) {
 
                         IconButton(onClick = {

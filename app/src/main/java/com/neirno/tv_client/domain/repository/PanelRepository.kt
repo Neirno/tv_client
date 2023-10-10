@@ -1,6 +1,7 @@
 package com.neirno.tv_client.domain.repository
 
 import com.neirno.tv_client.core.network.Result
+import com.neirno.tv_client.domain.entity.VideoStatus
 
 interface PanelRepository {
     suspend fun pause(): Result<Boolean>
@@ -13,4 +14,6 @@ interface PanelRepository {
     suspend fun skipBackward(): Result<Boolean>
     suspend fun setTime(time: String): Result<Boolean>
     suspend fun skip() : Result<Boolean>
+    suspend fun getStatus(): Result<VideoStatus>
+
 }

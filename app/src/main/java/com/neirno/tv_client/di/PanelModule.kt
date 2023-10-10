@@ -2,6 +2,7 @@ package com.neirno.tv_client.di
 
 import com.neirno.tv_client.data.repository.PanelRepositoryImpl
 import com.neirno.tv_client.domain.repository.PanelRepository
+import com.neirno.tv_client.domain.use_case.panel.GetVideoStatus
 import com.neirno.tv_client.domain.use_case.panel.PanelUseCases
 import com.neirno.tv_client.domain.use_case.panel.Pause
 import com.neirno.tv_client.domain.use_case.panel.Resume
@@ -44,7 +45,8 @@ object PanelModule {
             skipForward = SkipForward(panelRepository),
             skipBackward = SkipBackward(panelRepository),
             setTime = SetTime(panelRepository),
-            skipVideo = SkipVideo(panelRepository)
+            skipVideo = SkipVideo(panelRepository),
+            getVideoStatus = GetVideoStatus(panelRepository)
         )
     }
 

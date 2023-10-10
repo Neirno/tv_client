@@ -5,6 +5,7 @@ import com.neirno.tv_client.core.ui.UiStatus
 import com.neirno.tv_client.core.network.Result
 import com.neirno.tv_client.domain.entity.FilmInfo
 import com.neirno.tv_client.domain.use_case.film.FilmUseCase
+import com.neirno.tv_client.domain.use_case.history.HistoryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import org.orbitmvi.orbit.Container
 import org.orbitmvi.orbit.ContainerHost
@@ -16,7 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class FilmsViewModel @Inject constructor(
-    private val filmsUseCase: FilmUseCase
+    private val filmsUseCase: FilmUseCase,
+    private val historyUseCase: HistoryUseCase
 ) : ViewModel(), ContainerHost<FilmsState, FilmsSideEffect> {
 
     override val container: Container<FilmsState, FilmsSideEffect> = container(FilmsState.DisplayCategories())
@@ -70,6 +72,7 @@ class FilmsViewModel @Inject constructor(
         when (val result = filmsUseCase.playAndGetFilmInfo(category, film)) {
             is Result.Success -> {
                 postSideEffect(FilmsSideEffect.ShowFilmDetails(result.data))
+                historyUseCase.insertHistory(film)
             }
             is Result.Error -> {
                 postSideEffect(FilmsSideEffect.Error(result.exception.message ?: "Unknown error"))

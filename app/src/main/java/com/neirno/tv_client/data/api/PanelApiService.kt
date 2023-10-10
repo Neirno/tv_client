@@ -1,5 +1,6 @@
 package com.neirno.tv_client.data.api
 
+import com.neirno.tv_client.data.api.model.VideoStatusResponse
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -35,6 +36,9 @@ interface PanelApiService {
 
     @POST("/skip")
     suspend fun skip() : Response<ResponseBody>
+
+    @POST("/status")
+    suspend fun getStatus(): VideoStatusResponse
 }
 
 data class SetPanelData(

@@ -10,5 +10,6 @@ data class PanelUseCases(
     val skipForward: SkipForward,
     val skipBackward: SkipBackward,
     val setTime: SetTime,
-    val skipVideo: SkipVideo
+    val skipVideo: SkipVideo,
+    val getVideoStatus: GetVideoStatus
 )
