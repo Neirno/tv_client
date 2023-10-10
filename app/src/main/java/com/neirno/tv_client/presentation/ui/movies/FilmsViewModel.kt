@@ -32,6 +32,8 @@ class FilmsViewModel @Inject constructor(
             is FilmsEvent.FilmSelected -> showFilmDetails(event.film)
             is FilmsEvent.BackPressed -> backToCategories()
             is FilmsEvent.SendFilm -> sendFilm(event.category, event.film)
+            is FilmsEvent.LoadPrivateFilms -> loadPrivateFilms(event.password)
+            is FilmsEvent.PlayPrivateFilm -> playPrivateFilm(event.filmName)
         }
     }
 
@@ -79,6 +81,30 @@ class FilmsViewModel @Inject constructor(
         loadCategories()
         reduce { FilmsState.DisplayCategories() }
     }
+
+    private fun loadPrivateFilms(password: String) = intent {
+        when (val result = filmsUseCase.getPrivateFilms(password)) {
+            is Result.Success -> {
+                reduce { FilmsState.DisplayFilms(status = UiStatus.Success, category = "Private", films = result.data) }
+            }
+            is Result.Error -> {
+                postSideEffect(FilmsSideEffect.Error(result.exception.message ?: "Unknown error"))
+                reduce { FilmsState.DisplayFilms(status = UiStatus.Failed("Ошибка вывода фильмов"), category = "Private") }
+            }
+        }
+    }
+
+    private fun playPrivateFilm(filmName: String) = intent {
+        when (val result = filmsUseCase.playPrivateFilm(filmName)) {
+            is Result.Success -> {
+                postSideEffect(FilmsSideEffect.ShowFilmDetails(result.data))
+            }
+            is Result.Error -> {
+                postSideEffect(FilmsSideEffect.Error(result.exception.message ?: "Unknown error"))
+            }
+        }
+    }
+
 }
 
 
@@ -92,6 +118,8 @@ sealed class FilmsEvent {
     data class CategorySelected(val category: String) : FilmsEvent()
     data class FilmSelected(val film: FilmInfo) : FilmsEvent()
     data class SendFilm(val category: String, val film: String) : FilmsEvent()
+    data class LoadPrivateFilms(val password: String) : FilmsEvent()
+    data class PlayPrivateFilm(val filmName: String) : FilmsEvent()
     object BackPressed : FilmsEvent()
 }
 

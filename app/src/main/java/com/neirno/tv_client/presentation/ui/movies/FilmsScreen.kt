@@ -43,15 +43,23 @@ fun FilmsScreen(
             is FilmsState.DisplayCategories -> DisplayingCategories(
                 status = viewState.status,
                 categoryName = viewState.categories,
-                openCategory = { it -> onEvent(FilmsEvent.CategorySelected(it)) }
+                openCategory = { it -> onEvent(FilmsEvent.CategorySelected(it)) },
+                openPrivateCategory = { password -> onEvent(FilmsEvent.LoadPrivateFilms(password)) }
             )
             is FilmsState.DisplayFilms -> DisplayingFilms(
                 status = viewState.status,
                 category = viewState.category,
                 filmsName = viewState.films,
-                openFilm = { category, film -> onEvent(FilmsEvent.SendFilm(category, film))},
+                openFilm = { category, film ->
+                    if (category == "Private") {
+                        onEvent(FilmsEvent.PlayPrivateFilm(film))
+                    } else {
+                        onEvent(FilmsEvent.SendFilm(category, film))
+                    }
+                },
                 backToCategory = { onEvent(FilmsEvent.BackPressed) }
             )
+
         }
         
     }

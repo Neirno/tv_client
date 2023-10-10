@@ -7,7 +7,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,7 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Power
-import androidx.compose.material.icons.filled.QueryBuilder
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,7 +51,6 @@ import com.neirno.tv_client.presentation.ui.movies.FilmsScreen
 import com.neirno.tv_client.presentation.ui.movies.FilmsViewModel
 import com.neirno.tv_client.presentation.ui.panel.PanelScreen
 import com.neirno.tv_client.presentation.ui.panel.PanelViewModel
-import com.neirno.tv_client.presentation.ui.query.QueryScreen
 import com.neirno.tv_client.presentation.ui.youtube.YoutubeViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -130,13 +127,6 @@ fun AppNavigator(navController: NavHostController, navigationManager: Navigation
                 navigationManager = navigationManager
             )
         }
-        composable(NavigationRoutes.QUERY_SCREEN) {
-            //val historyVM: HistoryVM = hiltViewModel()
-            QueryScreen(
-                modifier = Modifier,
-                navigationManager = navigationManager
-            )
-        }
     }
 }
 
@@ -166,17 +156,9 @@ fun MainScreen(
     Scaffold(
         topBar = {
             Column (horizontalAlignment = Alignment.CenterHorizontally) {
-                Row (horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
+                Row (horizontalArrangement = Arrangement.End, modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp)) {
-                    Row (horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        IconButton(onClick = { navigationManager.toHistoryScreen() }) {
-                            Icon(imageVector = Icons.Default.History, contentDescription = null)
-                        }
-                        IconButton(onClick = { navigationManager.toQueryScreen() }) {
-                            Icon(imageVector = Icons.Default.QueryBuilder, contentDescription = null)
-                        }
-                    }
                     Row (horizontalArrangement = Arrangement.spacedBy(16.dp)) {
 
                         IconButton(onClick = {

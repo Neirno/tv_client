@@ -2,6 +2,7 @@ package com.neirno.tv_client.data.repository
 
 import com.neirno.tv_client.data.api.FilmApiService
 import com.neirno.tv_client.core.network.Result
+import com.neirno.tv_client.data.api.PasswordRequest
 import com.neirno.tv_client.data.api.model.toDomain
 import com.neirno.tv_client.domain.entity.FilmInfo
 import com.neirno.tv_client.domain.repository.FilmRepository
@@ -49,6 +50,32 @@ class FilmRepositoryImpl(private val retrofit: Retrofit) : FilmRepository {
                 Result.Error(Exception("Error fetching film info: ${response.message()}"))
             }
         } catch (e: Throwable) {
+            Result.Error(e)
+        }
+    }
+
+    override suspend fun getPrivateFilms(password: String): Result<List<String>> {
+        return try {
+            val response = apiService.getPrivateFilms(PasswordRequest(password))
+            if (response.isSuccessful) {
+                Result.Success(response.body() ?: emptyList())
+            } else {
+                Result.Error(Exception("Error fetching private films: ${response.message()}"))
+            }
+        } catch (e: Throwable) {
+            Result.Error(e)
+        }
+    }
+
+    override suspend fun playPrivateFilm(filmName: String): Result<FilmInfo> {
+        return try {
+            val response = apiService.playPrivateFilm(filmName)
+            if (response.isSuccessful && response.body() != null) {
+                Result.Success(response.body()!!.toDomain())
+            } else {
+                Result.Error(Exception(response.message()))
+            }
+        } catch (e: Exception) {
             Result.Error(e)
         }
     }

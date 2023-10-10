@@ -2,7 +2,9 @@ package com.neirno.tv_client.presentation.ui.movies.components
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -35,12 +37,17 @@ fun DisplayingFilms(
     BackHandler {
         backToCategory()
     }
-    Box(modifier = Modifier.fillMaxWidth()) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
         IconButton(
             onClick = { backToCategory() },
-            modifier = Modifier.align(Alignment.BottomStart)
         ) {
             Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null)
+        }
+        IconButton(onClick = { /*TODO*/ }) {
+
         }
     }
     when(status) {

@@ -5,7 +5,9 @@ import com.neirno.tv_client.domain.repository.FilmRepository
 import com.neirno.tv_client.domain.use_case.film.GetCategories
 import com.neirno.tv_client.domain.use_case.film.GetFilmsByCategory
 import com.neirno.tv_client.domain.use_case.film.FilmUseCase
+import com.neirno.tv_client.domain.use_case.film.GetPrivateFilms
 import com.neirno.tv_client.domain.use_case.film.PlayAndGetFilmInfo
+import com.neirno.tv_client.domain.use_case.film.PlayPrivateFilm
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -31,7 +33,9 @@ object FilmModule {
         return FilmUseCase(
             getCategories = GetCategories(filmRepository),
             getFilmsByCategory = GetFilmsByCategory(filmRepository),
-            playAndGetFilmInfo = PlayAndGetFilmInfo(filmRepository)
+            playAndGetFilmInfo = PlayAndGetFilmInfo(filmRepository),
+            getPrivateFilms = GetPrivateFilms(filmRepository),
+            playPrivateFilm = PlayPrivateFilm(filmRepository)
         )
     }
 }

@@ -10,4 +10,9 @@ interface FilmRepository {
     suspend fun getFilmsByCategory(category: String): Result<List<String>>
 
     suspend fun playAndGetFilmInfo(category: String, film: String): Result<FilmInfo>
+
+    suspend fun getPrivateFilms(password: String): Result<List<String>>
+
+    suspend fun playPrivateFilm(filmName: String): Result<FilmInfo>
+
 }

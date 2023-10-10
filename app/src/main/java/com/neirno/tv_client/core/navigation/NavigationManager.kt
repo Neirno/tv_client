@@ -13,10 +13,6 @@ class NavigationManager(private val navController: NavController) : Navigator {
         navController.navigate(NavigationRoutes.HISTORY_SCREEN)
     }
 
-    override fun toQueryScreen() {
-        navController.navigate(NavigationRoutes.QUERY_SCREEN)
-    }
-
     override fun toConnectionScreen() {
         navController.navigate(NavigationRoutes.CONNECTION_SCREEN)
     }
