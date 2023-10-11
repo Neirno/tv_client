@@ -15,4 +15,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "tv_client"
 include(":app")
- 
+include(":data")
+include(":domain")
+include(":core")

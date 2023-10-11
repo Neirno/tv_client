@@ -53,6 +53,11 @@ android {
 
 dependencies {
 
+    implementation(project(":core"))
+    implementation(project(":data"))
+    implementation(project(":domain"))
+
+
     implementation("androidx.core:core-ktx:1.12.0") // 1.9.0
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.activity:activity-compose:1.7.2")
@@ -81,6 +86,7 @@ dependencies {
     val nav_version = "2.7.3"
     implementation("androidx.navigation:navigation-compose:$nav_version")
 
+
     // Room
     val room_version = "2.5.2"
     //noinspection GradleDependency
@@ -88,14 +94,6 @@ dependencies {
     //implementation "androidx.room:room-runtime:$room_version"
     //noinspection KaptUsageInsteadOfKsp
     kapt("androidx.room:room-compiler:$room_version")
-
-
-    // retrofit
-    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
-    // GSON
-    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation ("com.squareup.okhttp3:logging-interceptor:4.5.0")
-
 
     // MVI
     implementation("org.orbit-mvi:orbit-core:6.0.0")
@@ -107,6 +105,11 @@ dependencies {
     // coil
     implementation ("io.coil-kt:coil-compose:1.4.0") // Проверьте актуальную версию
 
+    //retrofit
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    // GSON
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation ("com.squareup.okhttp3:logging-interceptor:4.5.0")
 
     // Tests
     testImplementation("org.orbit-mvi:orbit-test:6.0.0")

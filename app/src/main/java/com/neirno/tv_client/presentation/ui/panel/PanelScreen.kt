@@ -3,10 +3,6 @@ package com.neirno.tv_client.presentation.ui.panel
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.VolumeDown
-import androidx.compose.material.icons.filled.VolumeMute
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -17,7 +13,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.neirno.tv_client.core.navigation.NavigationManager
 import com.neirno.tv_client.presentation.ui.panel.components.SoundSetupDialog
 import com.neirno.tv_client.presentation.ui.panel.components.TimeSetupDialog
 import kotlinx.coroutines.flow.Flow

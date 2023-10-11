@@ -28,8 +28,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import com.neirno.tv_client.core.extension.showToast
-import com.neirno.tv_client.core.navigation.NavigationManager
+import com.neirno.tv_client.presentation.extension.showToast
+import com.neirno.tv_client.navigation.NavigationManager
 import kotlinx.coroutines.flow.Flow
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn

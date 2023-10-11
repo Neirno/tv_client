@@ -9,7 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.*
-import com.neirno.tv_client.core.extension.showToast
+import com.neirno.tv_client.presentation.extension.showToast
 import com.neirno.tv_client.presentation.ui.movies.components.DisplayingCategories
 import com.neirno.tv_client.presentation.ui.movies.components.DisplayingFilms
 import kotlinx.coroutines.flow.Flow

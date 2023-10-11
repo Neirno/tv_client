@@ -1,3 +1,5 @@
+package com.neirno.tv_client.presentation.ui.youtube
+
 import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
@@ -46,7 +48,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.window.PopupProperties
 import coil.compose.rememberImagePainter
-import com.neirno.tv_client.core.extension.showToast
+import com.neirno.tv_client.presentation.extension.showToast
 import com.neirno.tv_client.core.ui.UiStatus
 import com.neirno.tv_client.domain.entity.Youtube
 import com.neirno.tv_client.presentation.ui.youtube.YoutubeEvent
@@ -218,7 +220,7 @@ fun YoutubeScreen(
                                     modifier = Modifier.fillMaxSize(),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text(text = (viewState.status as UiStatus.Failed).message)
+                                    Text(text = viewState.status.message)
                                 }
                             }
                         }
