@@ -3,7 +3,6 @@ package com.neirno.tv_client.domain.use_case.youtube
 import com.neirno.tv_client.core.network.Result
 import com.neirno.tv_client.domain.entity.Youtube
 import com.neirno.tv_client.domain.repository.YoutubeRepository
-import kotlinx.coroutines.flow.Flow
 
 class SearchVideo (
     private val youtubeRepository: YoutubeRepository

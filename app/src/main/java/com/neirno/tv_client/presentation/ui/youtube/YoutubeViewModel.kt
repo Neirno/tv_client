@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import com.neirno.tv_client.core.constants.Limit.PAGE_LIMIT
 import com.neirno.tv_client.core.network.Result
 import com.neirno.tv_client.core.ui.UiStatus
-import com.neirno.tv_client.domain.entity.History
 import com.neirno.tv_client.domain.entity.Youtube
 import com.neirno.tv_client.domain.entity.YoutubeSearch
 import com.neirno.tv_client.domain.use_case.history.HistoryUseCase
