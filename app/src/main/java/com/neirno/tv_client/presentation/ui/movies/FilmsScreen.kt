@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.*
+import androidx.fragment.app.FragmentActivity
 import com.neirno.tv_client.presentation.extension.showToast
 import com.neirno.tv_client.presentation.ui.movies.components.DisplayingCategories
 import com.neirno.tv_client.presentation.ui.movies.components.DisplayingFilms
@@ -19,7 +20,7 @@ fun FilmsScreen(
     modifier: Modifier,
     viewState: FilmsState,
     onEvent: (FilmsEvent) -> Unit,
-    sideEffectFlow: Flow<FilmsSideEffect>
+    sideEffectFlow: Flow<FilmsSideEffect>,
 ) {
     val context = LocalContext.current
 
@@ -44,7 +45,7 @@ fun FilmsScreen(
                 status = viewState.status,
                 categoryName = viewState.categories,
                 openCategory = { it -> onEvent(FilmsEvent.CategorySelected(it)) },
-                openPrivateCategory = { password -> onEvent(FilmsEvent.LoadPrivateFilms(password)) }
+                openPrivateCategory = { password -> onEvent(FilmsEvent.LoadPrivateFilms(password)) },
             )
             is FilmsState.DisplayFilms -> DisplayingFilms(
                 status = viewState.status,

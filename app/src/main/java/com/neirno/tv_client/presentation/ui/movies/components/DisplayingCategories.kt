@@ -1,5 +1,6 @@
 package com.neirno.tv_client.presentation.ui.movies.components
 
+import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.AlertDialog
@@ -32,7 +34,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
 import com.neirno.tv_client.core.ui.UiStatus
 import kotlin.random.Random
 
@@ -41,9 +47,8 @@ fun DisplayingCategories(
     status: UiStatus,
     categoryName: List<String>,
     openCategory: (String) -> Unit,
-    openPrivateCategory: (String) -> Unit
+    openPrivateCategory: (String) -> Unit,
 ) {
-
     when(status) {
         UiStatus.Loading -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -82,7 +87,7 @@ fun DisplayingCategories(
                         openPrivateCategory(password)
                         showDialog = false // закрыть диалог после обработки пароля
                     },
-                    onDismiss = { showDialog = false }
+                    onDismiss = { showDialog = false }, // снизу жесть)
                 )
             }
         }
@@ -148,7 +153,9 @@ fun PasswordDialog(onPasswordEntered: (String) -> Unit, onDismiss: () -> Unit) {
             TextField(
                 value = password,
                 onValueChange = {newValue -> password = newValue},
-                placeholder = { Text(text = "Пароль") }
+                placeholder = { Text(text = "Пароль") },
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
             )
         },
         confirmButton = {

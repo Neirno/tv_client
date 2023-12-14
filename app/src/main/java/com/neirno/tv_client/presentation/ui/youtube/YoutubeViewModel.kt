@@ -96,7 +96,7 @@ class YoutubeViewModel @Inject constructor(
 
     private fun getLastQueries() = intent {
         youtubeUseCase.getYoutubeSearches().collect { searchList ->
-            val queries = searchList.take(5)
+            val queries = searchList.takeLast(5)
             reduce { state.copy(lastQueries = queries) }
         }
     }

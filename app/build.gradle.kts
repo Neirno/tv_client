@@ -80,7 +80,7 @@ dependencies {
     kapt("com.google.dagger:hilt-android-compiler:2.46.1")
 
     // icons
-    implementation ("androidx.compose.material:material-icons-extended:1.5.2")
+    implementation ("androidx.compose.material:material-icons-extended:1.5.3")
 
     // Навигация
     val nav_version = "2.7.3"
@@ -113,4 +113,7 @@ dependencies {
 
     // Tests
     testImplementation("org.orbit-mvi:orbit-test:6.0.0")
+
+    // биометрияя
+    implementation("androidx.biometric:biometric:1.1.0")
 }
